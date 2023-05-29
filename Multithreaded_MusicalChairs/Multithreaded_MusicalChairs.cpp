@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -37,17 +38,21 @@ string getCurrentTime() {
     return oss.str();
 }
 
-
-
-void threadFunction(int threadId, IntQueueHW6 &queue) {
+void threadFunction(int threadId, IntQueueHW6& queue, vector<int>& playerVector) {
     // Acquire the lock on the mutex
     unique_lock<mutex> lock(mtx);
 
     // Access the shared queue
     // Perform the desired operations (e.g., enqueue, dequeue)
     if (queue.isFull()) {
-        
         cout << "Player " << threadId << " couldn't capture a chair." << endl;
+
+        // Find the position of the threadId in the playerVector
+        auto it = find(playerVector.begin(), playerVector.end(), threadId);
+        if (it != playerVector.end()) {
+            // Erase the threadId from the playerVector
+            playerVector.erase(it);
+        }
         return;
     }
     queue.enqueue(threadId);
@@ -57,23 +62,38 @@ void threadFunction(int threadId, IntQueueHW6 &queue) {
     lock.unlock();
 }
 
-int main()
-{
+int main() {
     cout << "Welcome to Musical Chairs game!" << endl;
     cout << "Enter the number of players: ";
     cin >> numPlayers;
     cout << "Game Start!" << endl;
 
-
-    IntQueueHW6 chairQueue(numPlayers - 1);  // Queue to store the chairs
-    vector<thread> threads;
+    vector<int> playerVector;
+    playerVector.resize(numPlayers);
     for (int i = 0; i < numPlayers; ++i) {
-        threads.emplace_back(threadFunction, i, ref(chairQueue));
+        playerVector[i] = i;
     }
 
-    for (auto& thread : threads) {
-        thread.join();
+    while (playerVector.size() > 1) {
+        IntQueueHW6 chairQueue(numPlayers - 1);  // Queue to store the chairs
+        vector<thread> threads;
+        for (int i = 0; i < playerVector.size(); ++i) {
+            threads.emplace_back(threadFunction, playerVector[i], ref(chairQueue), ref(playerVector));
+        }
+
+        /*cout << "Time is now " << getCurrentTime() << endl;
+
+        chrono::system_clock::time_point sleepTime = chrono::system_clock::now() + chrono::seconds(2);
+        this_thread::sleep_until(sleepTime);*/
+
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        numPlayers--;
     }
+
+    cout << "Winner: Player " << playerVector[0] << endl;
 
     return 0;
 }
