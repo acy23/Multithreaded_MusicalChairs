@@ -40,6 +40,10 @@ string getCurrentTime() {
 
 void threadFunction(int threadId, IntQueueHW6& queue, vector<int>& playerVector) {
     // Acquire the lock on the mutex
+
+    chrono::system_clock::time_point sleepTime = chrono::system_clock::now() + chrono::seconds(2);
+    this_thread::sleep_until(sleepTime);
+
     unique_lock<mutex> lock(mtx);
 
     // Access the shared queue
@@ -81,10 +85,7 @@ int main() {
             threads.emplace_back(threadFunction, playerVector[i], ref(chairQueue), ref(playerVector));
         }
 
-        /*cout << "Time is now " << getCurrentTime() << endl;
-
-        chrono::system_clock::time_point sleepTime = chrono::system_clock::now() + chrono::seconds(2);
-        this_thread::sleep_until(sleepTime);*/
+        cout << "Time is now " << getCurrentTime() << endl;
 
         for (auto& thread : threads) {
             thread.join();
