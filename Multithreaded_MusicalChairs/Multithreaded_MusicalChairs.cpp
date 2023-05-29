@@ -68,9 +68,10 @@ void threadFunction(int threadId, IntQueueHW6& queue, vector<int>& playerVector)
 
 int main() {
     cout << "Welcome to Musical Chairs game!" << endl;
-    cout << "Enter the number of players: ";
+    cout << "Enter the number of players in the game:" << endl;
     cin >> numPlayers;
     cout << "Game Start!" << endl;
+    cout << endl;
 
     vector<int> playerVector;
     playerVector.resize(numPlayers);
@@ -91,10 +92,18 @@ int main() {
             thread.join();
         }
 
+        cout << "Remaining players are as follows: ";
+        for (const auto& player : playerVector) {
+            cout << player << " ";
+        }
+        cout << endl;
+        cout << endl;
+
         numPlayers--;
     }
 
-    cout << "Winner: Player " << playerVector[0] << endl;
+    cout << "Game over!" << endl;
+    cout << "Winner is Player " << playerVector[0] << "!" << endl;
 
     return 0;
 }
